@@ -1,0 +1,5 @@
+from artificial_bee_colony.colonies.simple_abc import BeeColony
+from artificial_bee_colony.colonies.multifitness_abc import MultiBeeColony
+from artificial_bee_colony.colonies.adaptive_abc import AdaptiveBeeColony
+from artificial_bee_colony.colonies.modified_abc import ModBeeColony
+from artificial_bee_colony.colonies.gl_abc import GLBeeColony
