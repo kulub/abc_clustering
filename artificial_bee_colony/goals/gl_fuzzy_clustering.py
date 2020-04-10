@@ -40,19 +40,10 @@ class GLFuzzyClustering:
         
         return result
 
-    @staticmethod
-    def compute_explore_bounds(a, b):
-        #(upper - a) is to (1 - a) what (a - lower) is to a;
-        #preserve the spirit of ABC - change self to buddy, or move it by the diff away from buddy
-        upper = np.maximum(b, a + (1 - a) * (a - b) / (a + 1e-8))
-        lower = np.minimum(b, a - a * (b - a) / (1 - a + 1e-8))
-        return lower, upper
-    
     def explore(self, buddy):
         new_weights = copy(self.weights)
         mixed = random.randrange(len(new_weights.T))
-        lower, upper = GLFuzzyClustering.compute_explore_bounds(self.weights.T[mixed], buddy.weights.T[mixed])
-        new_weight = np.random.uniform(lower, upper)
+        new_weight = np.clip(self.weights.T[mixed] + np.random.uniform(-1, 1) * (self.weights.T[mixed] - buddy.weights.T[mixed]), 0, 1)
         new_weights.T[mixed] = new_weight / sum(new_weight)
 
         return GLFuzzyClustering(new_weights, self.vectors, self.neighbors)

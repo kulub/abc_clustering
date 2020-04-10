@@ -28,20 +28,12 @@ class ModFuzzyClustering:
                 result += weight * distance.euclidean(vector, center)
         return 1 / result
 
-    @staticmethod
-    def compute_explore_bounds(a, b):
-        #(upper - a) is to (1 - a) what (a - lower) is to a;
-        #preserve the spirit of ABC - change self to buddy, or move it by the diff away from buddy
-        upper = np.maximum(b, a + (1 - a) * (a - b) / (a + 1e-8))
-        lower = np.minimum(b, a - a * (b - a) / (1 - a + 1e-8))
-        return lower, upper
-    
     def explore(self, gmax, buddy, rando1, rando2):
         new_weights = copy(self.weights)
         mixing_probs = np.array([random.uniform(0, 1) for _ in new_weights.T])
         for i, mixing_prob in enumerate(mixing_probs):
             if mixing_prob >= self.mr:
-                new_weight = gmax.weights.T[i] + self.f * (self.weights.T[i] - buddy.weights.T[i]) + self.f * (rando1.weights.T[i] - rando2.weights.T[i])
+                new_weight = np.clip(gmax.weights.T[i] + self.f * (self.weights.T[i] - buddy.weights.T[i]) + self.f * (rando1.weights.T[i] - rando2.weights.T[i]), 0, 1)
                 new_weights.T[i] = new_weight / sum(new_weight)
             
         return ModFuzzyClustering(new_weights, self.vectors, self.f, self.mr)
@@ -71,19 +63,11 @@ class DEFuzzyClustering:
             for vector, weight in zip(self.vectors, cluster):
                 result += weight * distance.euclidean(vector, center)
         return 1 / result
-
-    @staticmethod
-    def compute_explore_bounds(a, b):
-        #(upper - a) is to (1 - a) what (a - lower) is to a;
-        #preserve the spirit of ABC - change self to buddy, or move it by the diff away from buddy
-        upper = np.maximum(b, a + (1 - a) * (a - b) / (a + 1e-8))
-        lower = np.minimum(b, a - a * (b - a) / (1 - a + 1e-8))
-        return lower, upper
     
     def explore(self, gmax, buddy, rando1, rando2):
         new_weights = copy(self.weights)
         mixed = random.randrange(len(new_weights.T))
-        new_weight = gmax.weights.T[mixed] + self.f * (self.weights.T[mixed] - buddy.weights.T[mixed]) + self.f * (rando1.weights.T[mixed] - rando2.weights.T[mixed])
+        new_weight = np.clip(gmax.weights.T[mixed] + self.f * (self.weights.T[mixed] - buddy.weights.T[mixed]) + self.f * (rando1.weights.T[mixed] - rando2.weights.T[mixed]), 0, 1)
         new_weights.T[mixed] = new_weight / sum(new_weight)
             
         return DEFuzzyClustering(new_weights, self.vectors, self.f)
@@ -114,14 +98,6 @@ class FastExploreFuzzyClustering:
                 result += weight * distance.euclidean(vector, center)
         return 1 / result
 
-    @staticmethod
-    def compute_explore_bounds(a, b):
-        #(upper - a) is to (1 - a) what (a - lower) is to a;
-        #preserve the spirit of ABC - change self to buddy, or move it by the diff away from buddy
-        upper = np.maximum(b, a + (1 - a) * (a - b) / (a + 1e-8))
-        lower = np.minimum(b, a - a * (b - a) / (1 - a + 1e-8))
-        return lower, upper
-    
     def explore(self, gmax, buddy, rando1, rando2):
         new_weights = copy(self.weights)
         mixing_probs = np.array([random.uniform(0, 1) for _ in new_weights.T])
@@ -130,8 +106,7 @@ class FastExploreFuzzyClustering:
             mixings[random.randrange(len(mixings))] = True
         for i, mixing in enumerate(mixings):
             if mixing:
-                lower, upper = FastExploreFuzzyClustering.compute_explore_bounds(self.weights.T[i], buddy.weights.T[i])
-                new_weight = np.random.uniform(lower, upper)
+                new_weight = np.clip(self.weights.T[i] + np.random.uniform(-1, 1) * (self.weights.T[i] - buddy.weights.T[i]), 0, 1)
                 new_weights.T[i] = new_weight / sum(new_weight)
             
         return FastExploreFuzzyClustering(new_weights, self.vectors, self.mr)

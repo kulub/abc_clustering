@@ -5,9 +5,8 @@ import random
 from copy import copy
 
 class FuzzyClustering:
-    def __init__(self, weights, centers, vectors):
+    def __init__(self, weights, vectors):
         self.weights = weights
-        self.centers = centers
         self.vectors = vectors
 
     @classmethod
@@ -18,38 +17,23 @@ class FuzzyClustering:
             weights[0][i], weights[1][i], weights[2][i], weights[3][i] = row / sum(row)
             
         centers = np.array([(np.random.rand(2) * 180 - 90) * random_normal_01() for _ in range(4)])
-        return FuzzyClustering(weights, centers, vectors)
+        return FuzzyClustering(weights, vectors)
     
     def compute_fitness(self):
         result = 0
-        for cluster, center in zip(self.weights, self.centers):
+        for cluster in self.weights:
+            center = sum((self.vectors.T * cluster).T) / sum(cluster)
             for vector, weight in zip(self.vectors, cluster):
                 result += weight * distance.euclidean(vector, center)
         return 1 / result
-
-    @staticmethod
-    def compute_explore_bounds(a, b):
-        #(upper - a) is to (1 - a) what (a - lower) is to a;
-        #preserve the spirit of ABC - change self to buddy, or move it by the diff away from buddy
-        upper = np.maximum(b, a + (1 - a) * (a - b) / (a + 1e-8))
-        lower = np.minimum(b, a - a * (b - a) / (1 - a + 1e-8))
-        return lower, upper
     
     def explore(self, buddy):
-        if bool(random.getrandbits(1)):
-            new_weights = copy(self.weights)
-            mixed = random.randrange(len(new_weights.T))
-            lower, upper = FuzzyClustering.compute_explore_bounds(self.weights.T[mixed], buddy.weights.T[mixed])
-            new_weight = np.random.uniform(lower, upper)
-            new_weights.T[mixed] = new_weight / sum(new_weight)
-            new_centers = self.centers
-        else:
-            new_centers = copy(self.centers)
-            mixed = random.randrange(len(new_centers))
-            new_centers[mixed] = self.centers[mixed] + random.uniform(-1, 1) * (self.centers[mixed] - buddy.centers[mixed])
-            new_weights = self.weights
+        new_weights = copy(self.weights)
+        mixed = random.randrange(len(new_weights.T))
+        new_weight = np.clip(self.weights.T[mixed] + np.random.uniform(-1, 1) * (self.weights.T[mixed] - buddy.weights.T[mixed]), 0, 1)
+        new_weights.T[mixed] = new_weight / sum(new_weight)
             
-        return FuzzyClustering(new_weights, new_centers, self.vectors)
+        return FuzzyClustering(new_weights, self.vectors)
 
     def params(self):
         return (self.vectors,)

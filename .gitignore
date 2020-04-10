@@ -1,1 +1,3 @@
 .ipynb_checkpoints
+*.pyd
+__pycache__
