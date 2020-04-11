@@ -6,6 +6,16 @@
 
 #include "util.h"
 
+template <typename ProblemType, typename RNGType>
+std::vector<Bee<ProblemType>> generate_population(typename ProblemType::params_type params, size_t limit, size_t size, RNGType& rng) {
+	std::vector<Bee<ProblemType>> result;
+	for (size_t i = 0; i < size; ++i) {
+		result.emplace_back(limit, ProblemType(params, rng));
+		result.emplace_back(limit, ProblemType(params, rng));
+	}
+	return result;
+}
+
 template <typename ProblemType>
 class Bee {
 public:
@@ -75,75 +85,12 @@ private:
 };
 
 template <typename ProblemType, typename RNGType>
-class BeeInitIterator {
-public:
-	using iterator_category = std::input_iterator_tag;
-	using value_type = Bee<ProblemType>;
-	using difference_type = void;
-	using pointer = Bee<ProblemType>*;
-	using reference = Bee<ProblemType>&;
-
-	BeeInitIterator(typename ProblemType::params_type params, size_t limit, size_t size, RNGType* rng) :
-		index(0),
-		max(size),
-		limit(limit),
-		params(params),
-		rng(rng) {
-
-	}
-
-	BeeInitIterator() :
-		index(-1) {
-
-	}
-
-	Bee<ProblemType> operator*() {
-		return Bee<ProblemType>(limit, ProblemType(params, *rng));
-	}
-
-	BeeInitIterator& operator++() {
-		++index;
-		return *this;
-	}
-
-
-	//linker throws hissy fit if not declared as members...
-	bool operator==(const BeeInitIterator<ProblemType, RNGType>& other) const {
-		if ((other.index == -1 && index == max) || (index == -1 && other.index == other.max)) {
-			return true;
-		}
-
-		return index == other.index;
-	}
-
-	bool operator!=(const BeeInitIterator<ProblemType, RNGType>& other) const {
-		return std::rel_ops::operator!=(*this, other);
-	}
-
-private:
-	size_t index;
-	size_t max;
-	size_t limit;
-	RNGType* rng;
-	typename ProblemType::params_type params;
-};
-
-template <typename ProblemType, typename RNGType>
-std::vector<Bee<ProblemType>> generate_population(typename ProblemType::params_type params, size_t limit, size_t size, RNGType* rng) {
-	std::vector<Bee<ProblemType>> result;
-	for (size_t i = 0; i < size; ++i) {
-		result.emplace_back(limit, ProblemType(params, *rng));
-	}
-	return result;
-}
-
-template <typename ProblemType, typename RNGType>
 class ArtificialBeeColony {
 public:
 	ArtificialBeeColony(typename ProblemType::params_type problem_params, size_t population, size_t limit, RNGType&& rng):
 		rng(std::move(rng)),
 		problem_params(problem_params),
-		bees(generate_population<ProblemType, RNGType>(problem_params, limit, population, &rng)),
+		bees(generate_population<ProblemType, RNGType>(problem_params, limit, population, rng)),
 		champion(*std::max_element(bees.cbegin(), bees.cend(), [](const Bee<ProblemType>& a, const Bee<ProblemType>& b) { return a.get_fitness() < b.get_fitness(); })),
 		all_nectar(std::accumulate(bees.cbegin(), bees.cend(), 0.0, [](typename ProblemType::fitness_type a, const Bee<ProblemType>& b) { return a + b.get_fitness(); })) {
 	}

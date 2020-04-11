@@ -8,10 +8,15 @@
 #include "problems.h"
 #include "colonies.h"
 
+#ifndef VECTOR_DIM
+#define VECTOR_DIM static_cast<size_t>(2)
+#endif
+
+
 struct BeeColony {
 	PyObject_HEAD
-	ArtificialBeeColony<FuzzyClustering<2>, std::mt19937_64>* colony_impl;
-	std::vector<std::array<double, 2>>* vectors;
+	ArtificialBeeColony<FuzzyClustering<VECTOR_DIM>, std::mt19937_64>* colony_impl;
+	std::vector<std::array<double, VECTOR_DIM>>* vectors;
 };
 
 static PyTypeObject BeeColonyType = {
@@ -68,7 +73,7 @@ static int BeeColony_init(BeeColony* self, PyObject* args) {
 		return -1;
 	}
 
-	self->vectors = new std::vector<std::array<double, 2>>();
+	self->vectors = new std::vector<std::array<double, VECTOR_DIM>>();
 
 	Py_ssize_t n_vectors = PySequence_Size(vectors);
 	self->vectors->resize(n_vectors);
@@ -79,11 +84,11 @@ static int BeeColony_init(BeeColony* self, PyObject* args) {
 			return -1;
 		}
 		Py_ssize_t vector_dim = PySequence_Size(vector);
-		if (vector_dim != 2) {
+		if (vector_dim != VECTOR_DIM) {
 			return -1;
 		}
 
-		for (size_t dimension = 0; dimension < 2; ++dimension) {
+		for (size_t dimension = 0; dimension < VECTOR_DIM; ++dimension) {
 			PyObject* value = PySequence_GetItem(vector, dimension);
 			if (!PyObject_TypeCheck(value, &PyFloat_Type)) {
 				return -1;
@@ -93,10 +98,10 @@ static int BeeColony_init(BeeColony* self, PyObject* args) {
 		}
 	}
 
-	FuzzyClusteringParams<2> params;
+	FuzzyClusteringParams<VECTOR_DIM> params;
 	params.n_clusters = n_clusters;
 	params.vectors = self->vectors;
-	self->colony_impl = new ArtificialBeeColony<FuzzyClustering<2>, std::mt19937_64>(params, population, limit, std::mt19937_64());
+	self->colony_impl = new ArtificialBeeColony<FuzzyClustering<VECTOR_DIM>, std::mt19937_64>(params, population, limit, std::mt19937_64());
 
 	return 0;
 }
