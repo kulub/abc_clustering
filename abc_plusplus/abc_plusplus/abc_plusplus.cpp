@@ -15,7 +15,7 @@
 
 struct BeeColony {
 	PyObject_HEAD
-	ArtificialBeeColony<FuzzyClustering<VECTOR_DIM>, std::mt19937_64>* colony_impl;
+	ArtificialBeeColony<FuzzyClustering<VECTOR_DIM>, ClassicMixingStrategy<FuzzyClustering<VECTOR_DIM>>, std::mt19937_64>* colony_impl;
 	std::vector<std::array<double, VECTOR_DIM>>* vectors;
 };
 
@@ -101,7 +101,7 @@ static int BeeColony_init(BeeColony* self, PyObject* args) {
 	FuzzyClusteringParams<VECTOR_DIM> params;
 	params.n_clusters = n_clusters;
 	params.vectors = self->vectors;
-	self->colony_impl = new ArtificialBeeColony<FuzzyClustering<VECTOR_DIM>, std::mt19937_64>(params, population, limit, std::mt19937_64());
+	self->colony_impl = new ArtificialBeeColony<FuzzyClustering<VECTOR_DIM>, ClassicMixingStrategy<FuzzyClustering<VECTOR_DIM>>, std::mt19937_64>(params, population, limit, std::mt19937_64());
 
 	return 0;
 }
@@ -120,7 +120,7 @@ static PyObject* ABC_optimize(BeeColony* self, PyObject* args) {
 
 	self->colony_impl->optimize(cycles);
 
-	FuzzyClustering solution = self->colony_impl->get_champion().get_state();
+	FuzzyClustering<VECTOR_DIM> solution = self->colony_impl->get_champion().get_state();
 	PyObject* result = PyList_New(solution.get_n_clusters());
 
 	if (result == nullptr) {

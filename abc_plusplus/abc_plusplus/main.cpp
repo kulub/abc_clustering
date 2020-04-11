@@ -18,6 +18,6 @@ int main() {
 	FuzzyClusteringParams<2> params;
 	params.n_clusters = 4;
 	params.vectors = &vec;
-	ArtificialBeeColony<FuzzyClustering<2>, std::mt19937_64> colony{ params, 20, 200, std::mt19937_64() };
+	ArtificialBeeColony<FuzzyClustering<2>, ClassicMixingStrategy<FuzzyClustering<2>>, std::mt19937_64> colony{ params, 20, 200, std::mt19937_64() };
 	colony.optimize(1000);
 }
