@@ -27,7 +27,7 @@ public:
 	}
 
 	template <typename RNGType>
-	typename ProblemType::fitness_type explore(const Bee<ProblemType>& buddy, RNGType rng) {
+	typename ProblemType::fitness_type explore(const Bee<ProblemType>& buddy, RNGType& rng) {
 		std::uniform_int_distribution<size_t> gene_select_dist(0, problem.gene_count() - 1);
 		std::uniform_real_distribution<double> coeff_dist(-1.0, 1.0);
 
@@ -58,7 +58,7 @@ public:
 	}
 
 	template <typename RNGType>
-	typename ProblemType::fitness_type tire(RNGType rng) {
+	typename ProblemType::fitness_type tire(RNGType& rng) {
 		if (remaining_cycles == 0) {
 			problem.randomize_value(rng);
 			typename ProblemType::fitness_type old_fitness = fitness;
