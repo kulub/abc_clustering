@@ -42,7 +42,7 @@ class ModBeeColony:
                 source_idx = random.choices(range(len(sources)), [source.fitness / all_nectar for source in sources])[0]
                 source = sources[source_idx]
                 buddies = multi_randrange_except(len(sources), 3, source_idx)
-                new_source = source.explore(best_source, sources[buddies[0]],  sources[buddies[1]], sources[buddies[2]])
+                new_source = source.explore(best_source, sources[buddies[0]], sources[buddies[1]], sources[buddies[2]])
                 if new_source.fitness > source.fitness:
                     all_nectar += new_source.fitness - source.fitness
                     source.replace(new_source, limit)

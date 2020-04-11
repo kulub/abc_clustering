@@ -119,15 +119,15 @@ FuzzyClusteringGene operator+(double b, FuzzyClusteringGene a) {
 }
 
 FuzzyClusteringGene operator-(double b, FuzzyClusteringGene a) {
-	return a + b;
+	return a - b;
 }
 
 FuzzyClusteringGene operator*(double b, FuzzyClusteringGene a) {
-	return a + b;
+	return a * b;
 }
 
 FuzzyClusteringGene operator/(double b, FuzzyClusteringGene a) {
-	return a + b;
+	return a / b;
 }
 
 

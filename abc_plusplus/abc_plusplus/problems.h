@@ -14,7 +14,7 @@ public:
 	using const_iterator = std::vector<double>::const_iterator;
 
 	FuzzyClusteringGene(size_t n_clusters):
-		weights(n_clusters){
+		weights(n_clusters) {
 
 	}
 
