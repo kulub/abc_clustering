@@ -1,8 +1,6 @@
 #include <vector>
 #include<array>
 
-#define private public
-
 #include "problems.h"
 #include "colonies.h"
 

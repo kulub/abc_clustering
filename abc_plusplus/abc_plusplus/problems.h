@@ -73,13 +73,30 @@ public:
 	using params_type = FuzzyClusteringParams<n_dim>;
 
 	template <typename RNGType>
-	FuzzyClustering(FuzzyClusteringParams<n_dim> params, RNGType& rng):
+	FuzzyClustering(const FuzzyClusteringParams<n_dim>& params, RNGType& rng):
 		weights(params.n_clusters * params.vectors->size()),
 		n_clusters(params.n_clusters),
 		vectors(params.vectors),
 		n_vectors(params.vectors->size()) {
 
 		randomize_value(rng);
+	}
+
+
+	FuzzyClustering(const FuzzyClusteringParams<n_dim>& params, const std::vector<double>& weights) :
+		weights(weights),
+		n_clusters(params.n_clusters),
+		vectors(params.vectors),
+		n_vectors(params.vectors->size()) {
+
+	}
+
+	FuzzyClustering(const FuzzyClusteringParams<n_dim>& params, std::vector<double>&& weights) :
+		weights(std::move(weights)),
+		n_clusters(params.n_clusters),
+		vectors(params.vectors),
+		n_vectors(params.vectors->size()) {
+
 	}
 
 	fitness_type compute_fitness() const {

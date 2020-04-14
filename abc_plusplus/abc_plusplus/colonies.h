@@ -45,11 +45,11 @@ public:
 	ProblemType mutate(size_t bee_idx, const std::vector<BeeType>& swarm, const BeeType& champion, RNGType& rng) {
 		std::array<size_t, 3> buddies = uniform_ints_except<3, RNGType>(0, swarm.size() - 1, bee_idx, rng);
 
-		return mix(champion.get_state(), swarm[bee_idx].get_state(), swarm[buddies[0]].get_state(), swarm[buddies[1]].get_state(), swarm[buddies[2]].get_state(), rng);
+		return mix(swarm[bee_idx].get_state(), champion.get_state(), swarm[buddies[0]].get_state(), swarm[buddies[1]].get_state(), swarm[buddies[2]].get_state(), rng);
 	}
 
 	template <typename RNGType>
-	ProblemType mix(ProblemType problem, const ProblemType& buddy1, const ProblemType& buddy2, const ProblemType& buddy3, const ProblemType& buddy4, RNGType& rng) {
+	ProblemType mix(ProblemType problem, const ProblemType& champion, const ProblemType& buddy1, const ProblemType& buddy2, const ProblemType& buddy3, RNGType& rng) {
 		std::uniform_real_distribution<double> gene_select_dist(0.0, 1.0);
 
 		std::vector<double> gene_selections;
@@ -66,8 +66,8 @@ public:
 
 		for (size_t gene_idx = 0; gene_idx < gene_selections.size(); ++gene_idx) {
 			if (gene_selections[gene_idx] <= mr) {
-				typename ProblemType::gene_type new_gene = problem.get_gene(gene_idx);
-				new_gene += f * (buddy1.get_gene(gene_idx) - buddy2.get_gene(gene_idx) + buddy3.get_gene(gene_idx) - buddy4.get_gene(gene_idx));
+				typename ProblemType::gene_type new_gene = champion.get_gene(gene_idx);
+				new_gene += f * (problem.get_gene(gene_idx) - buddy1.get_gene(gene_idx) + buddy2.get_gene(gene_idx) - buddy3.get_gene(gene_idx));
 				new_gene.repair();
 				problem.set_gene(gene_idx, new_gene);
 			}

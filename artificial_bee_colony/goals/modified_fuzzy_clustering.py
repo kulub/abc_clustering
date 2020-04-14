@@ -66,7 +66,7 @@ class DEFuzzyClustering:
     
     def explore(self, gmax, buddy, rando1, rando2):
         new_weights = copy(self.weights)
-        mixed = 3#random.randrange(len(new_weights.T))
+        mixed = random.randrange(len(new_weights.T))
         new_weight = np.clip(gmax.weights.T[mixed] + self.f * (self.weights.T[mixed] - buddy.weights.T[mixed]) + self.f * (rando1.weights.T[mixed] - rando2.weights.T[mixed]), 0, 1)
         new_weights.T[mixed] = new_weight / sum(new_weight)
             
