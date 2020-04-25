@@ -5,11 +5,10 @@
 #include <vector>
 #include <array>
 
-#include "problems.h"
-#include "colonies.h"
+#include "abc.h"
 
 #ifndef VECTOR_DIM
-#define VECTOR_DIM static_cast<size_t>(2)
+#define VECTOR_DIM static_cast<size_t>(2)//2492)
 #endif
 
 
@@ -111,7 +110,7 @@ static int BeeColony_init(BeeColony* self, PyObject* args) {
 	FuzzyClusteringParams<VECTOR_DIM> params;
 	params.n_clusters = n_clusters;
 	params.vectors = self->vectors;
-	self->colony_impl = new ABCFuzzyClustering<VECTOR_DIM>(params, population, limit, ClassicMixingStrategy<FuzzyClustering<VECTOR_DIM>>(), std::mt19937_64());
+	self->colony_impl = new ABCFuzzyClustering<VECTOR_DIM>(params, population, limit, ClassicMixingStrategy<FuzzyClustering<VECTOR_DIM>>(), RouletteSelectionStrategy(), std::mt19937_64());
 
 	return 0;
 }
@@ -121,7 +120,7 @@ static void BeeColony_dealloc(BeeColony* self) {
 	delete self->vectors;
 }
 
-static PyObject* ABC_optimize(BeeColony* self, PyObject* args) {
+static PyObject* ABC_fit(BeeColony* self, PyObject* args) {
 	size_t cycles;
 
 	if (!PyArg_ParseTuple(args, "K", &cycles)) {
@@ -129,6 +128,16 @@ static PyObject* ABC_optimize(BeeColony* self, PyObject* args) {
 	}
 
 	self->colony_impl->optimize(cycles);
+
+	Py_RETURN_NONE;
+}
+
+static PyObject* ABC_score(BeeColony* self, PyObject* args) {
+	return PyFloat_FromDouble(self->colony_impl->get_champion().get_fitness());
+}
+
+static PyObject* ABC_optimize(BeeColony* self, PyObject* args) {
+	Py_DECREF(ABC_fit(self, args));
 
 	FuzzyClustering<VECTOR_DIM> solution = self->colony_impl->get_champion().get_state();
 	PyObject* result = PyList_New(solution.get_n_clusters());
@@ -166,6 +175,12 @@ static PyObject* ABC_optimize(BeeColony* self, PyObject* args) {
 static PyMethodDef BeeColony_methods[] = {
 	{"optimize", (PyCFunction)ABC_optimize, METH_VARARGS,
 	 "Runs the algorithm and returns the best solution"
+	},
+	{"fit", (PyCFunction)ABC_fit, METH_VARARGS,
+	 "Runs the algorithm, without returning anything"
+	},
+	{"score", (PyCFunction)ABC_score, METH_VARARGS,
+	 "Returns the score of the best solution"
 	},
 	{NULL}  /* Sentinel */
 };
@@ -227,7 +242,7 @@ static int ModBeeColony_init(ModBeeColony* self, PyObject* args) {
 	FuzzyClusteringParams<VECTOR_DIM> params;
 	params.n_clusters = n_clusters;
 	params.vectors = self->vectors;
-	self->colony_impl = new ModABCFuzzyClustering<VECTOR_DIM>(params, population, limit, DEMixingStrategy<FuzzyClustering<VECTOR_DIM>>(f, mr), std::mt19937_64());
+	self->colony_impl = new ModABCFuzzyClustering<VECTOR_DIM>(params, population, limit, DEMixingStrategy<FuzzyClustering<VECTOR_DIM>>(f, mr), RouletteSelectionStrategy(), std::mt19937_64());
 
 	return 0;
 }
@@ -237,7 +252,7 @@ static void ModBeeColony_dealloc(ModBeeColony* self) {
 	delete self->vectors;
 }
 
-static PyObject* ModABC_optimize(ModBeeColony* self, PyObject* args) {
+static PyObject* ModABC_fit(ModBeeColony* self, PyObject* args) {
 	size_t cycles;
 
 	if (!PyArg_ParseTuple(args, "K", &cycles)) {
@@ -245,6 +260,16 @@ static PyObject* ModABC_optimize(ModBeeColony* self, PyObject* args) {
 	}
 
 	self->colony_impl->optimize(cycles);
+
+	Py_RETURN_NONE;
+}
+
+static PyObject* ModABC_score(ModBeeColony* self, PyObject* args) {
+	return PyFloat_FromDouble(self->colony_impl->get_champion().get_fitness());
+}
+
+static PyObject* ModABC_optimize(ModBeeColony* self, PyObject* args) {
+	Py_DECREF(ModABC_fit(self, args));
 
 	FuzzyClustering<VECTOR_DIM> solution = self->colony_impl->get_champion().get_state();
 	PyObject* result = PyList_New(solution.get_n_clusters());
@@ -282,6 +307,12 @@ static PyObject* ModABC_optimize(ModBeeColony* self, PyObject* args) {
 static PyMethodDef ModBeeColony_methods[] = {
 	{"optimize", (PyCFunction)ModABC_optimize, METH_VARARGS,
 	 "Runs the algorithm and returns the best solution"
+	},
+	{"fit", (PyCFunction)ModABC_fit, METH_VARARGS,
+	 "Runs the algorithm, without returning anything"
+	},
+	{"score", (PyCFunction)ModABC_score, METH_VARARGS,
+	 "Returns the score of the best solution"
 	},
 	{NULL}  /* Sentinel */
 };

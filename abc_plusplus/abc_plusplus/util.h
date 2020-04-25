@@ -3,6 +3,7 @@
 #include <random>
 #include <array>
 #include <cmath>
+#include <algorithm>
 
 template <typename RNGType>
 size_t uniform_int_except(size_t min, size_t max, size_t excluded, RNGType rng) {
@@ -33,6 +34,29 @@ std::array<size_t, count> uniform_ints(size_t min, size_t max, RNGType rng) {
 	return result;
 }
 
+template <typename RNGType>
+std::vector<size_t> uniform_ints(size_t min, size_t max, size_t count, RNGType rng) {
+	static std::vector<size_t> numbers;
+	if (numbers.size() != max - min + 1) {
+		numbers.resize(max - min + 1);
+		for (size_t i = 0; i < numbers.size(); ++i) {
+			numbers[i] = i;
+		}
+	}
+
+	std::vector<size_t> result;
+	result.resize(count);
+	for (size_t i = 0; i < count; ++i) {
+		std::uniform_int_distribution<size_t> dist(i, max - min);
+		size_t random = dist(rng);
+
+		result[i] = numbers[random];
+		std::swap(numbers[random], numbers[i]);
+	}
+
+	return result;
+}
+
 template <size_t count, typename RNGType>
 std::array<size_t, count> uniform_ints_except(size_t min, size_t max, size_t excluded, RNGType rng) {
 	std::array<size_t, count> result = uniform_ints<count, RNGType>(min, max - 1, rng);
@@ -45,8 +69,8 @@ std::array<size_t, count> uniform_ints_except(size_t min, size_t max, size_t exc
 	return result;
 }
 
-template <typename IterType, typename TransformOpType>
-size_t roulette(double target, IterType begin, IterType end, TransformOpType transform_op) {
+template <typename ValueType, typename IterType, typename TransformOpType>
+size_t roulette(ValueType target, IterType begin, IterType end, TransformOpType transform_op) {
 	size_t winner = 0;
 	while (begin != end) {
 		target -= transform_op(*begin);

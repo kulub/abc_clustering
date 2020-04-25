@@ -10,7 +10,7 @@ template <typename ProblemType>
 class ClassicMixingStrategy {
 public:
 	template <typename BeeType, typename RNGType>
-	ProblemType mutate(size_t bee_idx, const std::vector<BeeType>& swarm, const BeeType& champion, RNGType& rng) {
+	ProblemType mutate(size_t bee_idx, const std::vector<BeeType>& swarm, const BeeType&, RNGType& rng) {
 		size_t buddy_index = uniform_int_except(0, swarm.size() - 1, bee_idx, rng);
 		const BeeType& buddy = swarm[buddy_index];
 
@@ -142,6 +142,94 @@ private:
 	MixingStrategy mixing_strategy;
 };
 
+class RouletteSelectionStrategy {
+public:
+	template <typename FitnessType, typename BeeType, typename RNGType>
+	size_t select(FitnessType all_nectar, const std::vector<BeeType>& swarm, size_t, RNGType& rng) {
+		std::uniform_real_distribution<FitnessType> roulette_distribution(static_cast<FitnessType>(0.0), all_nectar);
+		return roulette(roulette_distribution(rng), swarm.cbegin(), swarm.cend(), [](const auto& bee) { return bee.get_fitness(); });
+	}
+};
+
+class TournamentSelectionStrategy {
+public:
+	TournamentSelectionStrategy(size_t population, size_t max_cycles) :
+		population(population),
+		max_cycles(max_cycles) {
+
+	}
+
+	template <typename FitnessType, typename BeeType, typename RNGType>
+	size_t select(FitnessType, const std::vector<BeeType>& swarm, const size_t iteration, RNGType& rng) {
+		size_t tournament_size = compute_size(iteration);
+
+		static std::vector<size_t> numbers;
+		if (numbers.size() != swarm.size()) {
+			numbers.resize(swarm.size());
+			for (size_t i = 0; i < numbers.size(); ++i) {
+				numbers[i] = i;
+			}
+		}
+
+		size_t winner;
+
+		{
+			std::uniform_int_distribution<size_t> dist(0, numbers.size() - 1);
+			size_t random = dist(rng);
+
+			winner = numbers[random];
+			std::swap(numbers[random], numbers[0]);
+		}
+
+		for (size_t i = 1; i < tournament_size; ++i) {
+			std::uniform_int_distribution<size_t> dist(i, numbers.size() - 1);
+			size_t random = dist(rng);
+
+			size_t contender = numbers[random];
+			std::swap(numbers[random], numbers[i]);
+
+			if (swarm[contender].get_fitness() > swarm[winner].get_fitness()) {
+				winner = contender;
+			}
+		}
+
+		return winner;
+	}
+
+private:
+	size_t population;
+	size_t max_cycles;
+
+	size_t compute_size(size_t iteration) {
+		if (population >= 20) {
+			size_t i = iteration / (max_cycles / 10) + 1;
+			return population * i / 10;
+		}
+		else if (population > 10) {
+			if (iteration <= max_cycles / 5) {
+				return 2;
+			}
+			else if (iteration <= max_cycles / 5 * 4) {
+				return 2 + population / 5;
+			}
+			else {
+				return population;
+			}
+		}
+		else {
+			if (iteration <= max_cycles / 5) {
+				return 2;
+			}
+			else if (iteration <= max_cycles / 5 * 4) {
+				return 3;
+			}
+			else {
+				return population;
+			}
+		}
+	}
+};
+
 template <typename ProblemType, typename MixingStrategy, typename RNGType>
 std::vector<Bee<ProblemType, MixingStrategy>> generate_population(typename ProblemType::params_type params, size_t limit, size_t size, MixingStrategy mixing_strategy, RNGType& rng) {
 	std::vector<Bee<ProblemType, MixingStrategy>> result;
@@ -151,11 +239,12 @@ std::vector<Bee<ProblemType, MixingStrategy>> generate_population(typename Probl
 	return result;
 }
 
-template <typename ProblemType, typename MixingStrategy, typename RNGType>
+template <typename ProblemType, typename MixingStrategy, typename SelectionStrategy, typename RNGType>
 class ArtificialBeeColony {
 public:
-	ArtificialBeeColony(typename ProblemType::params_type problem_params, size_t population, size_t limit, MixingStrategy mixing_strategy, RNGType&& rng):
+	ArtificialBeeColony(typename ProblemType::params_type problem_params, size_t population, size_t limit, MixingStrategy mixing_strategy, SelectionStrategy selection_strategy, RNGType&& rng):
 		rng(std::move(rng)),
+		selection_strategy(selection_strategy),
 		problem_params(problem_params),
 		bees(generate_population<ProblemType, MixingStrategy, RNGType>(problem_params, limit, population, mixing_strategy, rng)),
 		champion(*std::max_element(bees.cbegin(), bees.cend(), [](const auto& a, const auto& b) { return a.get_fitness() < b.get_fitness(); })),
@@ -169,8 +258,7 @@ public:
 			}
 
 			for (size_t i = 0; i < bees.size(); ++i) {
-				std::uniform_real_distribution<double> roulette_distribution(0.0, all_nectar);
-				size_t source_index = roulette(roulette_distribution(rng), bees.cbegin(), bees.cend(), [](const auto& bee) { return bee.get_fitness(); });
+				size_t source_index = selection_strategy.select(all_nectar, bees, iteration, rng);
 
 				all_nectar += bees[source_index].explore(source_index, bees, champion, rng);
 			}
@@ -191,15 +279,9 @@ public:
 
 private:
 	const typename ProblemType::params_type problem_params;
+	SelectionStrategy selection_strategy;
 	RNGType rng;
 	std::vector<Bee<ProblemType, MixingStrategy>> bees;
 	Bee<ProblemType, MixingStrategy> champion;
 	typename ProblemType::fitness_type all_nectar;
 };
-
-
-template <size_t dim>
-using ABCFuzzyClustering = ArtificialBeeColony<FuzzyClustering<dim>, ClassicMixingStrategy<FuzzyClustering<dim>>, std::mt19937_64>;
-
-template <size_t dim>
-using ModABCFuzzyClustering = ArtificialBeeColony<FuzzyClustering<dim>, DEMixingStrategy<FuzzyClustering<dim>>, std::mt19937_64>;
