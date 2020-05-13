@@ -8,7 +8,7 @@
 #include "abc.h"
 
 #ifndef VECTOR_DIM
-#define VECTOR_DIM static_cast<size_t>(2)
+#define VECTOR_DIM static_cast<size_t>(128)
 #endif
 
 
@@ -588,7 +588,7 @@ static PyMethodDef TournamentModBeeColony_methods[] = {
 	{NULL}  /* Sentinel */
 };
 
-PyMODINIT_FUNC PyInit_abc_plusplus_exp(void) {
+PyMODINIT_FUNC PyInit_abc_plusplus(void) {
 	BeeColonyType.tp_name = "abc_plusplus.ArtificialBeeColony";
 	BeeColonyType.tp_doc = "Simple Artificial Bee Colony";
 	BeeColonyType.tp_basicsize = sizeof(BeeColony);
