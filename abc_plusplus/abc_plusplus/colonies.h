@@ -144,6 +144,8 @@ private:
 
 class RouletteSelectionStrategy {
 public:
+	void set_size(size_t, size_t) {	}
+
 	template <typename FitnessType, typename BeeType, typename RNGType>
 	size_t select(FitnessType all_nectar, const std::vector<BeeType>& swarm, size_t, RNGType& rng) {
 		std::uniform_real_distribution<FitnessType> roulette_distribution(static_cast<FitnessType>(0.0), all_nectar);
@@ -153,10 +155,9 @@ public:
 
 class TournamentSelectionStrategy {
 public:
-	TournamentSelectionStrategy(size_t population, size_t max_cycles) :
-		population(population),
-		max_cycles(max_cycles) {
-
+	void set_size(size_t population, size_t max_iterations) {
+		this->population = population;
+		this->max_cycles = max_iterations;
 	}
 
 	template <typename FitnessType, typename BeeType, typename RNGType>
@@ -252,6 +253,8 @@ public:
 	}
 
 	void optimize(size_t max_iterations) {
+		selection_strategy.set_size(bees.size(), max_iterations);
+
 		for (size_t iteration = 0; iteration < max_iterations; ++iteration) {
 			for (size_t i = 0; i < bees.size(); ++i) {
 				all_nectar += bees[i].explore(i, bees, champion, rng);
