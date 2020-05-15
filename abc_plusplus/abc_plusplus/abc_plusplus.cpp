@@ -8,7 +8,7 @@
 #include "abc.h"
 
 #ifndef VECTOR_DIM
-#define VECTOR_DIM static_cast<size_t>(128)
+#define VECTOR_DIM static_cast<size_t>(2)
 #endif
 
 
