@@ -1,3 +1,10 @@
+/*
+Python bindings. Every specialization needs to be its own Python type, defined separately along with all of its methods.
+
+The Python API only allows clustering of vectors of specific dimensionality. This dimensionality is specified by the VECTOR_DIM
+preprocessor macro and defaults to 2.
+*/
+
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
@@ -54,15 +61,14 @@ static PyTypeObject TournamentModBeeColonyType = {
 
 
 static PyMethodDef ABCMethods[] = {
-	{NULL, NULL, 0, NULL}        /* Sentinel */
+	{NULL, NULL, 0, NULL}
 };
 
 static struct PyModuleDef abcmodule = {
 	PyModuleDef_HEAD_INIT,
-	"abc_plusplus",   /* name of module */
-	"Artificial Bee Colony bindings", /* module documentation, may be NULL */
-	-1,       /* size of per-interpreter state of the module,
-				 or -1 if the module keeps state in global variables. */
+	"abc_plusplus",
+	"Artificial Bee Colony bindings",
+	-1,
 	ABCMethods
 };
 
@@ -192,7 +198,7 @@ static PyMethodDef BeeColony_methods[] = {
 	{"score", (PyCFunction)ABC_score, METH_VARARGS,
 	 "Returns the score of the best solution"
 	},
-	{NULL}  /* Sentinel */
+	{NULL}
 };
 
 static PyObject* ModBeeColony_new(PyTypeObject* type, PyObject* args, PyObject *kwds) {
@@ -324,7 +330,7 @@ static PyMethodDef ModBeeColony_methods[] = {
 	{"score", (PyCFunction)ModABC_score, METH_VARARGS,
 	 "Returns the score of the best solution"
 	},
-	{NULL}  /* Sentinel */
+	{NULL}
 };
 
 static PyObject* TournamentBeeColony_new(PyTypeObject* type, PyObject* args, PyObject *kwds) {
@@ -453,7 +459,7 @@ static PyMethodDef TournamentBeeColony_methods[] = {
 	{"score", (PyCFunction)TournamentABC_score, METH_VARARGS,
 	 "Returns the score of the best solution"
 	},
-	{NULL}  /* Sentinel */
+	{NULL}
 };
 
 static PyObject* TournamentModBeeColony_new(PyTypeObject* type, PyObject* args, PyObject *kwds) {
@@ -585,7 +591,7 @@ static PyMethodDef TournamentModBeeColony_methods[] = {
 	{"score", (PyCFunction)TournamentModABC_score, METH_VARARGS,
 	 "Returns the score of the best solution"
 	},
-	{NULL}  /* Sentinel */
+	{NULL} 
 };
 
 PyMODINIT_FUNC PyInit_abc_plusplus(void) {

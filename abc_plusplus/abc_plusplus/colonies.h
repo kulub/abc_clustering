@@ -1,3 +1,7 @@
+/*
+Core algorithm logic.
+*/
+
 #include <vector>
 #include <tuple>
 #include <numeric>
@@ -240,6 +244,13 @@ std::vector<Bee<ProblemType, MixingStrategy>> generate_population(typename Probl
 	return result;
 }
 
+/*
+The class encapsulating the core algorithm logic.
+	ProblemType - class encapsulating the problem; FuzzyClustering (or a custom class exposing suitable interface)
+	MixingStrategy - class encapsulating the mixing strategy; ClassicMixingStrategy or DEMixingStrategy (or a custom class exposing suitable interface)
+	SelectionStrategy - class encapsulating the selection strategy; RouletteSelectionStrategy or TournamentSelectionStrategy (or a custom class exposing suitable interface)
+	RNGType - a random number generator (one of those defined in the <random> header, or a custom one with the same interface)
+*/
 template <typename ProblemType, typename MixingStrategy, typename SelectionStrategy, typename RNGType>
 class ArtificialBeeColony {
 public:

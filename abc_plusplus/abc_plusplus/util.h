@@ -1,3 +1,6 @@
+/*
+Auxiliary functions
+*/
 #pragma once
 
 #include <random>

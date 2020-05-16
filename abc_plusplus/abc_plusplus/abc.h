@@ -1,3 +1,6 @@
+/*
+Typedefs to avoid typing the long templates.
+*/
 #pragma once
 
 #include "colonies.h"

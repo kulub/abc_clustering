@@ -1,3 +1,7 @@
+/*
+Classes that encapsulate solutions to a problem and provide a standard interface to let the
+core logic manipulate them
+*/
 #pragma once
 
 #include <vector>
